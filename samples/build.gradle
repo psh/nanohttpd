@@ -4,7 +4,3 @@ dependencies {
 	compile project(':nanohttpd')
 	compile project(':nanohttpd-webserver')
 }
-
-task wrapper(type: Wrapper) {
-	gradleVersion = "4.4.1"
-}
