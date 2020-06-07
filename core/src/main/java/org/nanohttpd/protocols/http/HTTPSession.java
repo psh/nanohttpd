@@ -123,8 +123,8 @@ public class HTTPSession implements IHTTPSession {
         this.tempFileManager = tempFileManager;
         this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
         this.outputStream = outputStream;
-        this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
-        this.headers = new HashMap<String, String>();
+        this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.toString();
+        this.headers = new HashMap<>();
     }
 
     /**
@@ -199,7 +199,7 @@ public class HTTPSession implements IHTTPSession {
             byte[] partHeaderBuff = new byte[MAX_HEADER_SIZE];
             for (int boundaryIdx = 0; boundaryIdx < boundaryIdxs.length - 1; boundaryIdx++) {
                 fbuf.position(boundaryIdxs[boundaryIdx]);
-                int len = (fbuf.remaining() < MAX_HEADER_SIZE) ? fbuf.remaining() : MAX_HEADER_SIZE;
+                int len = Math.min(fbuf.remaining(), MAX_HEADER_SIZE);
                 fbuf.get(partHeaderBuff, 0, len);
                 BufferedReader in =
                         new BufferedReader(new InputStreamReader(new ByteArrayInputStream(partHeaderBuff, 0, len), Charset.forName(contentType.getEncoding())), len);
@@ -212,7 +212,9 @@ public class HTTPSession implements IHTTPSession {
                     throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                 }
 
-                String partName = null, fileName = null, partContentType = null;
+                StringBuilder partName = null;
+                String fileName = null;
+                String partContentType = null;
                 // Parse the reset of the header lines
                 mpline = in.readLine();
                 headerLines++;
@@ -224,14 +226,14 @@ public class HTTPSession implements IHTTPSession {
                         while (matcher.find()) {
                             String key = matcher.group(1);
                             if ("name".equalsIgnoreCase(key)) {
-                                partName = matcher.group(2);
+                                partName = new StringBuilder(matcher.group(2));
                             } else if ("filename".equalsIgnoreCase(key)) {
                                 fileName = matcher.group(2);
                                 // add these two line to support multiple
                                 // files uploaded using the same field Id
                                 if (!fileName.isEmpty()) {
                                     if (pcount > 0)
-                                        partName = partName + String.valueOf(pcount++);
+                                        partName.append(pcount++);
                                     else
                                         pcount++;
                                 }
@@ -258,11 +260,7 @@ public class HTTPSession implements IHTTPSession {
 
                 fbuf.position(partDataStart);
 
-                List<String> values = parms.get(partName);
-                if (values == null) {
-                    values = new ArrayList<String>();
-                    parms.put(partName, values);
-                }
+                List<String> values = parms.computeIfAbsent(partName.toString(), k -> new ArrayList<>());
 
                 if (partContentType == null) {
                     // Read the part into a string
@@ -273,14 +271,14 @@ public class HTTPSession implements IHTTPSession {
                 } else {
                     // Read it into a file
                     String path = saveTmpFile(fbuf, partDataStart, partDataEnd - partDataStart, fileName);
-                    if (!files.containsKey(partName)) {
-                        files.put(partName, path);
+                    if (!files.containsKey(partName.toString())) {
+                        files.put(partName.toString(), path);
                     } else {
                         int count = 2;
-                        while (files.containsKey(partName + count)) {
+                        while (files.containsKey(partName.toString() + count)) {
                             count++;
                         }
-                        files.put(partName + count, path);
+                        files.put(partName.toString() + count, path);
                     }
                     values.add(fileName);
                 }
@@ -325,11 +323,7 @@ public class HTTPSession implements IHTTPSession {
                 value = "";
             }
 
-            List<String> values = p.get(key);
-            if (values == null) {
-                values = new ArrayList<String>();
-                p.put(key, values);
-            }
+            List<String> values = p.computeIfAbsent(key, k -> new ArrayList<>());
 
             values.add(value);
         }
@@ -379,9 +373,9 @@ public class HTTPSession implements IHTTPSession {
                 this.inputStream.skip(this.splitbyte);
             }
 
-            this.parms = new HashMap<String, List<String>>();
+            this.parms = new HashMap<>();
             if (null == this.headers) {
-                this.headers = new HashMap<String, String>();
+                this.headers = new HashMap<>();
             } else {
                 this.headers.clear();
             }
@@ -390,7 +384,7 @@ public class HTTPSession implements IHTTPSession {
             BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
 
             // Decode the header into parms and header java properties
-            Map<String, String> pre = new HashMap<String, String>();
+            Map<String, String> pre = new HashMap<>();
             decodeHeader(hin, pre, this.parms, this.headers);
 
             if (null != this.remoteIp) {
@@ -434,15 +428,15 @@ public class HTTPSession implements IHTTPSession {
             if (!keepAlive || r.isCloseConnection()) {
                 throw new SocketException("NanoHttpd Shutdown");
             }
-        } catch (SocketException e) {
+        } catch (SocketException | SocketTimeoutException e) {
             // throw it out to close socket object (finalAccept)
-            throw e;
-        } catch (SocketTimeoutException ste) {
+
             // treat socket timeouts the same way we treat socket exceptions
             // i.e. close the stream & finalAccept object by throwing the
             // exception up the call stack.
-            throw ste;
-        } catch (SSLException ssle) {
+            throw e;
+        }
+        catch (SSLException ssle) {
             Response resp = Response.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SSL PROTOCOL FAILURE: " + ssle.getMessage());
             resp.send(this.outputStream);
             NanoHTTPD.safeClose(this.outputStream);
@@ -496,7 +490,7 @@ public class HTTPSession implements IHTTPSession {
         int search_window_pos = 0;
         byte[] search_window = new byte[4 * 1024 + boundary.length];
 
-        int first_fill = (b.remaining() < search_window.length) ? b.remaining() : search_window.length;
+        int first_fill = Math.min(b.remaining(), search_window.length);
         b.get(search_window, 0, first_fill);
         int new_bytes = first_fill - boundary.length;
 
@@ -522,7 +516,7 @@ public class HTTPSession implements IHTTPSession {
 
             // Refill search_window
             new_bytes = search_window.length - boundary.length;
-            new_bytes = (b.remaining() < new_bytes) ? b.remaining() : new_bytes;
+            new_bytes = Math.min(b.remaining(), new_bytes);
             b.get(search_window, boundary.length, new_bytes);
         } while (new_bytes > 0);
         return res;
@@ -554,7 +548,7 @@ public class HTTPSession implements IHTTPSession {
     @Override
     @Deprecated
     public final Map<String, String> getParms() {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new HashMap<>();
         for (String key : this.parms.keySet()) {
             result.put(key, this.parms.get(key).get(0));
         }
@@ -693,6 +687,6 @@ public class HTTPSession implements IHTTPSession {
 
     @Override
     public String getRemoteIpAddress() {
-        return this.remoteIp;
+        return remoteIp;
     }
 }

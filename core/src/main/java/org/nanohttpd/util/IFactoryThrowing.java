@@ -43,7 +43,7 @@ package org.nanohttpd.util;
  * @param <E>
  *            The base Type of exceptions that can be thrown
  */
+@FunctionalInterface
 public interface IFactoryThrowing<T, E extends Throwable> {
-
     T create() throws E;
 }

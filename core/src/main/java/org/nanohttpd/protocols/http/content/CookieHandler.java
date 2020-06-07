@@ -49,9 +49,9 @@ import org.nanohttpd.protocols.http.response.Response;
  */
 public class CookieHandler implements Iterable<String> {
 
-    private final HashMap<String, String> cookies = new HashMap<String, String>();
+    private final HashMap<String, String> cookies = new HashMap<>();
 
-    private final ArrayList<Cookie> queue = new ArrayList<Cookie>();
+    private final ArrayList<Cookie> queue = new ArrayList<>();
 
     public CookieHandler(Map<String, String> httpHeaders) {
         String raw = httpHeaders.get("cookie");

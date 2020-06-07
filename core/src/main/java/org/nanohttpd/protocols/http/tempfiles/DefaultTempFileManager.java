@@ -61,7 +61,7 @@ public class DefaultTempFileManager implements ITempFileManager {
         if (!tmpdir.exists()) {
             tmpdir.mkdirs();
         }
-        this.tempFiles = new ArrayList<ITempFile>();
+        this.tempFiles = new ArrayList<>();
     }
 
     @Override
@@ -69,8 +69,8 @@ public class DefaultTempFileManager implements ITempFileManager {
         for (ITempFile file : this.tempFiles) {
             try {
                 file.delete();
-            } catch (Exception ignored) {
-                NanoHTTPD.LOG.log(Level.WARNING, "could not delete file ", ignored);
+            } catch (Exception exception) {
+                NanoHTTPD.LOG.log(Level.WARNING, "could not delete file ", exception);
             }
         }
         this.tempFiles.clear();

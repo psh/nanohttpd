@@ -46,9 +46,9 @@ import org.nanohttpd.util.IFactoryThrowing;
  */
 public class SecureServerSocketFactory implements IFactoryThrowing<ServerSocket, IOException> {
 
-    private SSLServerSocketFactory sslServerSocketFactory;
+    private final SSLServerSocketFactory sslServerSocketFactory;
 
-    private String[] sslProtocols;
+    private final String[] sslProtocols;
 
     public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
         this.sslServerSocketFactory = sslServerSocketFactory;

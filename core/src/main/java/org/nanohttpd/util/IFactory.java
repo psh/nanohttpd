@@ -40,7 +40,7 @@ package org.nanohttpd.util;
  * @param <T>
  *            The Type of object to create
  */
+@FunctionalInterface
 public interface IFactory<T> {
-
     T create();
 }

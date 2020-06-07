@@ -52,7 +52,7 @@ public class DefaultAsyncRunner implements IAsyncRunner {
 
     protected long requestCount;
 
-    private final List<ClientHandler> running = Collections.synchronizedList(new ArrayList<ClientHandler>());
+    private final List<ClientHandler> running = Collections.synchronizedList(new ArrayList<>());
 
     /**
      * @return a list with currently running clients.
@@ -64,7 +64,7 @@ public class DefaultAsyncRunner implements IAsyncRunner {
     @Override
     public void closeAll() {
         // copy of the list for concurrency
-        for (ClientHandler clientHandler : new ArrayList<ClientHandler>(this.running)) {
+        for (ClientHandler clientHandler : new ArrayList<>(this.running)) {
             clientHandler.close();
         }
     }

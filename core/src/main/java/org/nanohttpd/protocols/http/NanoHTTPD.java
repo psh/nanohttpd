@@ -122,6 +122,7 @@ import org.nanohttpd.util.IHandler;
  * See the separate "LICENSE.md" file for the distribution license (Modified BSD
  * licence)
  */
+@SuppressWarnings("unused")
 public abstract class NanoHTTPD {
 
     public static final String CONTENT_DISPOSITION_REGEX = "([ |\t]*Content-Disposition[ |\t]*:)(.*)";
@@ -192,7 +193,7 @@ public abstract class NanoHTTPD {
 
     public static Map<String, String> mimeTypes() {
         if (MIME_TYPES == null) {
-            MIME_TYPES = new HashMap<String, String>();
+            MIME_TYPES = new HashMap<>();
             loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/default-mimetypes.properties");
             loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/mimetypes.properties");
             if (MIME_TYPES.isEmpty()) {
@@ -210,7 +211,7 @@ public abstract class NanoHTTPD {
         try {
             Enumeration<URL> resources = NanoHTTPD.class.getClassLoader().getResources(resourceName);
             while (resources.hasMoreElements()) {
-                URL url = (URL) resources.nextElement();
+                URL url = resources.nextElement();
                 Properties properties = new Properties();
                 InputStream stream = null;
                 try {
@@ -226,7 +227,7 @@ public abstract class NanoHTTPD {
         } catch (IOException e) {
             LOG.log(Level.INFO, "no mime types available at " + resourceName);
         }
-    };
+    }
 
     /**
      * Creates an SSLSocketFactory for HTTPS. Pass a loaded KeyStore and an
@@ -234,7 +235,7 @@ public abstract class NanoHTTPD {
      * loaded/initialized by the caller.
      */
     public static SSLServerSocketFactory makeSSLSocketFactory(KeyStore loadedKeyStore, KeyManager[] keyManagers) throws IOException {
-        SSLServerSocketFactory res = null;
+        SSLServerSocketFactory res;
         try {
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init(loadedKeyStore);
@@ -298,15 +299,11 @@ public abstract class NanoHTTPD {
         return mime == null ? "application/octet-stream" : mime;
     }
 
-    public static final void safeClose(Object closeable) {
+    public static void safeClose(Object closeable) {
         try {
             if (closeable != null) {
                 if (closeable instanceof Closeable) {
                     ((Closeable) closeable).close();
-                } else if (closeable instanceof Socket) {
-                    ((Socket) closeable).close();
-                } else if (closeable instanceof ServerSocket) {
-                    ((ServerSocket) closeable).close();
                 } else {
                     throw new IllegalArgumentException("Unknown object to close");
                 }
@@ -332,7 +329,7 @@ public abstract class NanoHTTPD {
 
     private IHandler<IHTTPSession, Response> httpHandler;
 
-    protected List<IHandler<IHTTPSession, Response>> interceptors = new ArrayList<IHandler<IHTTPSession, Response>>(4);
+    protected List<IHandler<IHTTPSession, Response>> interceptors = new ArrayList<>(4);
 
     /**
      * Pluggable strategy for asynchronously executing requests.
@@ -369,13 +366,7 @@ public abstract class NanoHTTPD {
         setAsyncRunner(new DefaultAsyncRunner());
 
         // creates a default handler that redirects to deprecated serve();
-        this.httpHandler = new IHandler<IHTTPSession, Response>() {
-
-            @Override
-            public Response handle(IHTTPSession input) {
-                return NanoHTTPD.this.serve(input);
-            }
-        };
+        this.httpHandler = NanoHTTPD.this::serve;
     }
 
     public void setHTTPHandler(IHandler<IHTTPSession, Response> handler) {
@@ -448,7 +439,7 @@ public abstract class NanoHTTPD {
      *         <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
     protected static Map<String, List<String>> decodeParameters(String queryString) {
-        Map<String, List<String>> parms = new HashMap<String, List<String>>();
+        Map<String, List<String>> parms = new HashMap<>();
         if (queryString != null) {
             StringTokenizer st = new StringTokenizer(queryString, "&");
             while (st.hasMoreTokens()) {
@@ -456,7 +447,7 @@ public abstract class NanoHTTPD {
                 int sep = e.indexOf('=');
                 String propertyName = sep >= 0 ? decodePercent(e.substring(0, sep)).trim() : decodePercent(e).trim();
                 if (!parms.containsKey(propertyName)) {
-                    parms.put(propertyName, new ArrayList<String>());
+                    parms.put(propertyName, new ArrayList<>());
                 }
                 String propertyValue = sep >= 0 ? decodePercent(e.substring(sep + 1)) : null;
                 if (propertyValue != null) {
@@ -475,6 +466,7 @@ public abstract class NanoHTTPD {
      * @return expanded form of the input, for example "foo%20bar" becomes
      *         "foo bar"
      */
+    @SuppressWarnings("CatchMayIgnoreException")
     public static String decodePercent(String str) {
         String decoded = null;
         try {
@@ -541,8 +533,7 @@ public abstract class NanoHTTPD {
      * <p/>
      * (By default, this returns a 404 "Not Found" plain text error response.)
      * 
-     * @param session
-     *            The HTTP session
+     * @param session The HTTP session
      * @return HTTP response, see class Response for details
      */
     @Deprecated
@@ -597,6 +588,7 @@ public abstract class NanoHTTPD {
      * @throws IOException
      *             if the socket is in use.
      */
+    @SuppressWarnings("BusyWait")
     public void start(final int timeout, boolean daemon) throws IOException {
         this.myServerSocket = this.getServerSocketFactory().create();
         this.myServerSocket.setReuseAddress(true);
