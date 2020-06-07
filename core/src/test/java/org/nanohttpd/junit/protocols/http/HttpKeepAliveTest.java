@@ -87,46 +87,42 @@ public class HttpKeepAliveTest extends HttpServerTest {
      *            The expected response
      */
     public void testManyRequests(final String request, final String[] expected) throws Exception {
-        Runnable r = new Runnable() {
-
-            @Override
-            public void run() {
+        Runnable r = () -> {
+            try {
+                PipedOutputStream requestStream = new PipedOutputStream();
+                PipedInputStream inputStream = new PipedInputStream(requestStream);
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                DefaultTempFileManager tempFileManager = new DefaultTempFileManager();
                 try {
-                    PipedOutputStream requestStream = new PipedOutputStream();
-                    PipedInputStream inputStream = new PipedInputStream(requestStream);
-                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    DefaultTempFileManager tempFileManager = new DefaultTempFileManager();
-                    try {
-                        HTTPSession session = HttpKeepAliveTest.this.testServer.createSession(tempFileManager, inputStream, outputStream);
-                        for (int i = 0; i < 2048; i++) {
-                            requestStream.write(request.getBytes());
-                            requestStream.flush();
-                            outputStream.reset();
-                            session.execute();
-                            assertResponse(outputStream, expected);
-                        }
-
-                        // Finally, try "Connection: Close"
-                        String closeReq = request.replaceAll("HTTP/1.1", "HTTP/1.1\r\nConnection: Close");
-                        expected[3] = "Connection: close";
-                        requestStream.write(closeReq.getBytes());
-                        outputStream.reset();
+                    HTTPSession session = HttpKeepAliveTest.this.testServer.createSession(tempFileManager, inputStream, outputStream);
+                    for (int i = 0; i < 2048; i++) {
+                        requestStream.write(request.getBytes());
                         requestStream.flush();
-                        // Server should now close the socket by throwing a
-                        // SocketException:
-                        try {
-                            session.execute();
-                        } catch (java.net.SocketException se) {
-                            junit.framework.Assert.assertEquals(se.getMessage(), "NanoHttpd Shutdown");
-                        }
+                        outputStream.reset();
+                        session.execute();
                         assertResponse(outputStream, expected);
-
-                    } finally {
-                        tempFileManager.clear();
                     }
-                } catch (Throwable t) {
-                    HttpKeepAliveTest.this.error = t;
+
+                    // Finally, try "Connection: Close"
+                    String closeReq = request.replaceAll("HTTP/1.1", "HTTP/1.1\r\nConnection: Close");
+                    expected[3] = "Connection: close";
+                    requestStream.write(closeReq.getBytes());
+                    outputStream.reset();
+                    requestStream.flush();
+                    // Server should now close the socket by throwing a
+                    // SocketException:
+                    try {
+                        session.execute();
+                    } catch (java.net.SocketException se) {
+                        junit.framework.Assert.assertEquals(se.getMessage(), "NanoHttpd Shutdown");
+                    }
+                    assertResponse(outputStream, expected);
+
+                } finally {
+                    tempFileManager.clear();
                 }
+            } catch (Throwable t) {
+                HttpKeepAliveTest.this.error = t;
             }
         };
         Thread t = new Thread(null, r, "Request Thread", 1 << 17);

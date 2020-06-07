@@ -70,15 +70,15 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     public interface UriResponder {
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
 
-        public Response put(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response put(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
 
-        public Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
 
-        public Response delete(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response delete(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
 
-        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response other(String method, UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
     }
 
     /**
@@ -183,8 +183,8 @@ public class RouterNanoHTTPD extends NanoHTTPD {
     public static class StaticPageHandler extends DefaultHandler {
 
         private static String[] getPathArray(String uri) {
-            String array[] = uri.split("/");
-            ArrayList<String> pathArray = new ArrayList<String>();
+            String[] array = uri.split("/");
+            ArrayList<String> pathArray = new ArrayList<>();
 
             for (String s : array) {
                 if (s.length() > 0)
@@ -323,7 +323,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         private static final String PARAM_MATCHER = "([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=\\s]+)";
 
-        private static final Map<String, String> EMPTY = Collections.unmodifiableMap(new HashMap<String, String>());
+        private static final Map<String, String> EMPTY = Collections.unmodifiableMap(new HashMap<>());
 
         private final String uri;
 
@@ -335,7 +335,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         private final Object[] initParameter;
 
-        private final List<String> uriParams = new ArrayList<String>();
+        private final List<String> uriParams = new ArrayList<>();
 
         public UriResource(String uri, int priority, Class<?> handler, Object... initParameter) {
             this(uri, handler, initParameter);
@@ -364,9 +364,9 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             int start = 0;
             while (matcher.find(start)) {
                 uriParams.add(patternUri.substring(matcher.start() + 1, matcher.end()));
-                patternUri = new StringBuilder(patternUri.substring(0, matcher.start()))//
-                        .append(PARAM_MATCHER)//
-                        .append(patternUri.substring(matcher.end())).toString();
+                patternUri = patternUri.substring(0, matcher.start()) +//
+                        PARAM_MATCHER +//
+                        patternUri.substring(matcher.end());
                 start = matcher.start() + PARAM_MATCHER.length();
                 matcher = PARAM_PATTERN.matcher(patternUri);
             }
@@ -394,11 +394,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                         }
                     } else {
                         return Response.newFixedLengthResponse(Status.OK, "text/plain", //
-                                new StringBuilder("Return: ")//
-                                        .append(handler.getCanonicalName())//
-                                        .append(".toString() -> ")//
-                                        .append(object)//
-                                        .toString());
+                                "Return: " +//
+                                        handler.getCanonicalName() +//
+                                        ".toString() -> " +//
+                                        object//
+                        );
                     }
                 } catch (Exception e) {
                     error = "Error: " + e.getClass().getName() + " : " + e.getMessage();
@@ -410,10 +410,10 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         @Override
         public String toString() {
-            return new StringBuilder("UrlResource{uri='").append((uri == null ? "/" : uri))//
-                    .append("', urlParts=").append(uriParams)//
-                    .append('}')//
-                    .toString();
+            return "UrlResource{uri='" + (uri == null ? "/" : uri) +//
+                    "', urlParts=" + uriParams +//
+                    '}'//
+                    ;
         }
 
         public String getUri() {
@@ -436,7 +436,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             Matcher matcher = uriPattern.matcher(url);
             if (matcher.matches()) {
                 if (uriParams.size() > 0) {
-                    Map<String, String> result = new HashMap<String, String>();
+                    Map<String, String> result = new HashMap<>();
                     for (int i = 1; i <= matcher.groupCount(); i++) {
                         result.put(uriParams.get(i - 1), matcher.group(i));
                     }
@@ -452,13 +452,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         public int compareTo(UriResource that) {
             if (that == null) {
                 return 1;
-            } else if (this.priority > that.priority) {
-                return 1;
-            } else if (this.priority < that.priority) {
-                return -1;
-            } else {
-                return 0;
-            }
+            } else return Integer.compare(this.priority, that.priority);
         }
 
         public void setPriority(int priority) {
@@ -467,7 +461,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     }
 
-    public static interface IRoutePrioritizer {
+    public interface IRoutePrioritizer {
 
         void addRoute(String url, int priority, Class<?> handler, Object... initParameter);
 
@@ -544,7 +538,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         @Override
         protected Collection<UriResource> newMappingCollection() {
-            return new PriorityQueue<UriResource>();
+            return new PriorityQueue<>();
         }
 
     }
@@ -552,14 +546,14 @@ public class RouterNanoHTTPD extends NanoHTTPD {
     public static class DefaultRoutePrioritizer extends BaseRoutePrioritizer {
 
         protected Collection<UriResource> newMappingCollection() {
-            return new PriorityQueue<UriResource>();
+            return new PriorityQueue<>();
         }
     }
 
     public static class InsertionOrderRoutePrioritizer extends BaseRoutePrioritizer {
 
         protected Collection<UriResource> newMappingCollection() {
-            return new ArrayList<UriResource>();
+            return new ArrayList<>();
         }
     }
 
@@ -619,7 +613,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     }
 
-    private UriRouter router;
+    private final UriRouter router;
 
     public RouterNanoHTTPD(int port) {
         super(port);

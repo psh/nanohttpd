@@ -45,7 +45,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -61,13 +60,10 @@ import org.junit.Test;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.router.RouterNanoHTTPD;
 import org.nanohttpd.router.RouterNanoHTTPD.DefaultRoutePrioritizer;
-import org.nanohttpd.router.RouterNanoHTTPD.Error404UriHandler;
 import org.nanohttpd.router.RouterNanoHTTPD.GeneralHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.IndexHandler;
 import org.nanohttpd.router.RouterNanoHTTPD.InsertionOrderRoutePrioritizer;
 import org.nanohttpd.router.RouterNanoHTTPD.NotImplementedHandler;
 import org.nanohttpd.router.RouterNanoHTTPD.ProvidedPriorityRoutePrioritizer;
-import org.nanohttpd.router.RouterNanoHTTPD.StaticPageHandler;
 import org.nanohttpd.router.RouterNanoHTTPD.UriResource;
 import org.nanohttpd.router.RouterNanoHTTPD.UriResponder;
 import org.nanohttpd.router.RouterNanoHTTPD.UriRouter;
@@ -82,13 +78,9 @@ public class TestNanolets {
     public static void setUp() throws Exception {
         stdIn = new PipedOutputStream();
         System.setIn(new PipedInputStream(stdIn));
-        serverStartThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                String[] args = {};
-                AppNanolets.main(args);
-            }
+        serverStartThread = new Thread(() -> {
+            String[] args = {};
+            AppNanolets.main(args);
         });
         serverStartThread.start();
         // give the server some tine to start.
@@ -154,7 +146,7 @@ public class TestNanolets {
     }
 
     @Test
-    public void doEncodedRequest() throws ClientProtocolException, IOException {
+    public void doEncodedRequest() throws IOException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpGet httpget = new HttpGet("http://localhost:9090/general/param%201/param%202");
         CloseableHttpResponse response = httpclient.execute(httpget);
@@ -448,7 +440,7 @@ public class TestNanolets {
         Class<?> handler2 = Boolean.class;
         Class<?> handler3 = Long.class;
 
-        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        ArrayList<Class<?>> classes = new ArrayList<>();
         classes.add(handler1);
         classes.add(handler2);
         classes.add(handler3);
@@ -456,7 +448,7 @@ public class TestNanolets {
         routePrioritizer.addRoute("/user", 100, handler1);
         routePrioritizer.addRoute("/user", 100, handler2);
         routePrioritizer.addRoute("/user", 100, handler3);
-        List<UriResource> prioritizedResources = new ArrayList<UriResource>();
+        List<UriResource> prioritizedResources = new ArrayList<>();
         prioritizedResources.addAll(routePrioritizer.getPrioritizedRoutes());
 
         for (int i = 0; i < classes.size(); i++) {
@@ -497,7 +489,7 @@ public class TestNanolets {
         Class<?> handler2 = Boolean.class;
         Class<?> handler3 = Long.class;
 
-        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        ArrayList<Class<?>> classes = new ArrayList<>();
         classes.add(handler2);
         classes.add(handler1);
         classes.add(handler3);
@@ -505,7 +497,7 @@ public class TestNanolets {
         routePrioritizer.addRoute("/user", 101, handler1);
         routePrioritizer.addRoute("/user", 100, handler2);
         routePrioritizer.addRoute("/user", 102, handler3);
-        List<UriResource> prioritizedResources = new ArrayList<UriResource>();
+        List<UriResource> prioritizedResources = new ArrayList<>();
         prioritizedResources.addAll(routePrioritizer.getPrioritizedRoutes());
 
         for (int i = 0; i < classes.size(); i++) {

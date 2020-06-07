@@ -42,7 +42,6 @@ import javax.net.ssl.SSLServerSocket;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
@@ -55,7 +54,7 @@ import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
 public class SSLServerSocketFactoryTest extends HttpServerTest {
 
     @Test
-    public void testSSLConnection() throws ClientProtocolException, IOException {
+    public void testSSLConnection() throws IOException {
         DefaultHttpClient httpclient = new DefaultHttpClient();
         HttpTrace httphead = new HttpTrace("https://localhost:9043/index.html");
         HttpResponse response = httpclient.execute(httphead);
@@ -100,7 +99,7 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
                     Assert.fail("could not start server");
                 }
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
     }
 

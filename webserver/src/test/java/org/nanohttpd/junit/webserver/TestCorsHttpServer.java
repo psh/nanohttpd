@@ -61,21 +61,17 @@ public class TestCorsHttpServer extends AbstractTestHttpServer {
     public static void setUp() throws Exception {
         stdIn = new PipedOutputStream();
         System.setIn(new PipedInputStream(stdIn));
-        serverStartThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                String[] args = {
-                    "--host",
-                    "localhost",
-                    "--port",
-                    "9090",
-                    "--dir",
-                    "src/test/resources",
-                    "--cors"
-                };
-                SimpleWebServer.main(args);
-            }
+        serverStartThread = new Thread(() -> {
+            String[] args = {
+                "--host",
+                "localhost",
+                "--port",
+                "9090",
+                "--dir",
+                "src/test/resources",
+                "--cors"
+            };
+            SimpleWebServer.main(args);
         });
         serverStartThread.start();
         // give the server some tine to start.

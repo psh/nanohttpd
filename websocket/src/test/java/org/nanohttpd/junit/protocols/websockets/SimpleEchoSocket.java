@@ -52,9 +52,9 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 @WebSocket(maxTextMessageSize = 64 * 1024)
 public class SimpleEchoSocket {
 
-    private final List<String> receivedMessages = new ArrayList<String>();
+    private final List<String> receivedMessages = new ArrayList<>();
 
-    private final List<String> toSendMessages = new ArrayList<String>();
+    private final List<String> toSendMessages = new ArrayList<>();
 
     private final CountDownLatch closeLatch;
 

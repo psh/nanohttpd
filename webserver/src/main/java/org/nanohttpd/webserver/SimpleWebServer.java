@@ -36,7 +36,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -95,7 +94,7 @@ public class SimpleWebServer extends NanoHTTPD {
         LICENCE = text;
     }
 
-    private static Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
+    private static final Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<>();
 
     /**
      * Starts as a standalone file server and waits for Enter.
@@ -105,10 +104,10 @@ public class SimpleWebServer extends NanoHTTPD {
         int port = 8080;
 
         String host = null; // bind to all interfaces by default
-        List<File> rootDirs = new ArrayList<File>();
+        List<File> rootDirs = new ArrayList<>();
         boolean quiet = false;
         String cors = null;
-        Map<String, String> options = new HashMap<String, String>();
+        Map<String, String> options = new HashMap<>();
 
         // Parse command-line, with short and long versions of the options.
         for (int i = 0; i < args.length; ++i) {
@@ -132,7 +131,7 @@ public class SimpleWebServer extends NanoHTTPD {
                 int dot = args[i].indexOf('=');
                 if (dot > 0) {
                     String name = args[i].substring(0, dot);
-                    String value = args[i].substring(dot + 1, args[i].length());
+                    String value = args[i].substring(dot + 1);
                     options.put(name, value);
                 }
             }
@@ -217,7 +216,7 @@ public class SimpleWebServer extends NanoHTTPD {
         super(host, port);
         this.quiet = quiet;
         this.cors = cors;
-        this.rootDirs = new ArrayList<File>(wwwroots);
+        this.rootDirs = new ArrayList<>(wwwroots);
 
         init();
     }
@@ -240,22 +239,22 @@ public class SimpleWebServer extends NanoHTTPD {
      * instead of '+'.
      */
     private String encodeUri(String uri) {
-        String newUri = "";
+        StringBuilder newUri = new StringBuilder();
         StringTokenizer st = new StringTokenizer(uri, "/ ", true);
         while (st.hasMoreTokens()) {
             String tok = st.nextToken();
             if ("/".equals(tok)) {
-                newUri += "/";
+                newUri.append("/");
             } else if (" ".equals(tok)) {
-                newUri += "%20";
+                newUri.append("%20");
             } else {
                 try {
-                    newUri += URLEncoder.encode(tok, "UTF-8");
+                    newUri.append(URLEncoder.encode(tok, "UTF-8"));
                 } catch (UnsupportedEncodingException ignored) {
                 }
             }
         }
-        return newUri;
+        return newUri.toString();
     }
 
     private String findIndexFileInDirectory(File directory) {
@@ -301,21 +300,9 @@ public class SimpleWebServer extends NanoHTTPD {
             }
         }
 
-        List<String> files = Arrays.asList(f.list(new FilenameFilter() {
-
-            @Override
-            public boolean accept(File dir, String name) {
-                return new File(dir, name).isFile();
-            }
-        }));
+        List<String> files = Arrays.asList(f.list((dir, name) -> new File(dir, name).isFile()));
         Collections.sort(files);
-        List<String> directories = Arrays.asList(f.list(new FilenameFilter() {
-
-            @Override
-            public boolean accept(File dir, String name) {
-                return new File(dir, name).isDirectory();
-            }
-        }));
+        List<String> directories = Arrays.asList(f.list((dir, name) -> new File(dir, name).isDirectory()));
         Collections.sort(directories);
         if (up != null || directories.size() + files.size() > 0) {
             msg.append("<ul>");
@@ -427,7 +414,7 @@ public class SimpleWebServer extends NanoHTTPD {
         Response response = null;
         if (plugin != null && plugin.canServeUri(uri, homeDir)) {
             response = plugin.serveFile(uri, headers, session, f, mimeTypeForFile);
-            if (response != null && response instanceof InternalRewrite) {
+            if (response instanceof InternalRewrite) {
                 InternalRewrite rewrite = (InternalRewrite) response;
                 return respond(rewrite.getHeaders(), session, rewrite.getUri());
             }
@@ -516,7 +503,6 @@ public class SimpleWebServer extends NanoHTTPD {
                     // would return range from file
                     // respond with not-modified
                     res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
-                    res.addHeader("ETag", etag);
                 } else {
                     if (endAt < 0) {
                         endAt = fileLen - 1;
@@ -533,8 +519,8 @@ public class SimpleWebServer extends NanoHTTPD {
                     res.addHeader("Accept-Ranges", "bytes");
                     res.addHeader("Content-Length", "" + newLen);
                     res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
-                    res.addHeader("ETag", etag);
                 }
+                res.addHeader("ETag", etag);
             } else {
 
                 if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {

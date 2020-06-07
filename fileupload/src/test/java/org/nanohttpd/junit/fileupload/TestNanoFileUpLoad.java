@@ -38,10 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemIterator;
@@ -50,7 +47,6 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpTrace;
@@ -89,7 +85,7 @@ public class TestNanoFileUpLoad {
 
     public static class TestServer extends NanoHTTPD {
 
-        public Response response = Response.newFixedLengthResponse("");
+        public final Response response = Response.newFixedLengthResponse("");
 
         public String uri;
 
@@ -120,7 +116,7 @@ public class TestNanoFileUpLoad {
             return new HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 
-        NanoFileUpload uploader;
+        final NanoFileUpload uploader;
 
         @Override
         public Response serve(IHTTPSession session) {
@@ -136,23 +132,21 @@ public class TestNanoFileUpLoad {
                         files = uploader.parseParameterMap(session);
                     }
                     if ("/uploadFile2".equals(this.uri)) {
-                        files = new HashMap<String, List<FileItem>>();
+                        files = new HashMap<>();
                         List<FileItem> parseRequest = uploader.parseRequest(session);
                         files.put(parseRequest.get(0).getFieldName(), parseRequest);
                     }
                     if ("/uploadFile3".equals(this.uri)) {
-                        files = new HashMap<String, List<FileItem>>();
+                        files = new HashMap<>();
                         FileItemIterator iter = uploader.getItemIterator(session);
                         while (iter.hasNext()) {
                             FileItemStream item = iter.next();
                             final String fileName = item.getName();
                             FileItem fileItem = uploader.getFileItemFactory().createItem(item.getFieldName(), item.getContentType(), item.isFormField(), fileName);
-                            files.put(fileItem.getFieldName(), Arrays.asList(new FileItem[]{
-                                fileItem
-                            }));
+                            files.put(fileItem.getFieldName(), Collections.singletonList(fileItem));
                             try {
                                 Streams.copy(item.openStream(), fileItem.getOutputStream(), true);
-                            } catch (Exception e) {
+                            } catch (Exception ignored) {
                             }
                             fileItem.setHeaders(item.getHeaders());
                         }
@@ -212,7 +206,7 @@ public class TestNanoFileUpLoad {
         Assert.assertEquals(file.getSize(), new File(textFileName).length());
     }
 
-    private void executeUpload(CloseableHttpClient httpclient, String textFileName, HttpPost post) throws IOException, ClientProtocolException {
+    private void executeUpload(CloseableHttpClient httpclient, String textFileName, HttpPost post) throws IOException {
         FileBody fileBody = new FileBody(new File(textFileName), ContentType.DEFAULT_BINARY);
         StringBody stringBody1 = new StringBody("Message 1", ContentType.MULTIPART_FORM_DATA);
 
@@ -240,7 +234,7 @@ public class TestNanoFileUpLoad {
                     Assert.fail("could not start server");
                 }
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
     }
 

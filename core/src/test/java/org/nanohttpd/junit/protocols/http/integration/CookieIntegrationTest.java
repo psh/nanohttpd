@@ -60,9 +60,9 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
 
     public static class CookieTestServer extends NanoHTTPD {
 
-        List<Cookie> cookiesReceived = new ArrayList<Cookie>();
+        final List<Cookie> cookiesReceived = new ArrayList<>();
 
-        List<Cookie> cookiesToSend = new ArrayList<Cookie>();
+        final List<Cookie> cookiesToSend = new ArrayList<>();
 
         public CookieTestServer() {
             super(8192);

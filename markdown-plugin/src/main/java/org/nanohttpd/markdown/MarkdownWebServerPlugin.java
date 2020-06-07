@@ -103,8 +103,8 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
                 if (reader != null) {
                     reader.close();
                 }
-            } catch (IOException ignored) {
-                MarkdownWebServerPlugin.LOG.log(Level.FINEST, "close failed", ignored);
+            } catch (IOException exception) {
+                MarkdownWebServerPlugin.LOG.log(Level.FINEST, "close failed", exception);
             }
         }
     }

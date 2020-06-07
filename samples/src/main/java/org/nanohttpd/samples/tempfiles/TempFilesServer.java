@@ -57,7 +57,7 @@ public class TempFilesServer extends DebugServer {
 
         private ExampleManager() {
             this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
-            this.tempFiles = new ArrayList<ITempFile>();
+            this.tempFiles = new ArrayList<>();
         }
 
         @Override

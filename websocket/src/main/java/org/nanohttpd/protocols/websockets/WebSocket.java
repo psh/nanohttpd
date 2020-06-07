@@ -53,15 +53,15 @@ public abstract class WebSocket {
 
     private OpCode continuousOpCode = null;
 
-    private final List<WebSocketFrame> continuousFrames = new LinkedList<WebSocketFrame>();
+    private final List<WebSocketFrame> continuousFrames = new LinkedList<>();
 
     private State state = State.UNCONNECTED;
 
-    protected boolean enforceNoGzip = true;
+    protected final boolean enforceNoGzip = true;
 
     private final IHTTPSession handshakeRequest;
 
-    private final Response handshakeResponse = new Response(Status.SWITCH_PROTOCOL, null, (InputStream) null, 0) {
+    private final Response handshakeResponse = new Response(Status.SWITCH_PROTOCOL, null, null, 0) {
 
         @Override
         public void send(OutputStream out) {

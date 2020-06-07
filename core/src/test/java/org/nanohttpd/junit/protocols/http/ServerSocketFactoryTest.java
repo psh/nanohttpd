@@ -66,9 +66,9 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
         ServerSocket ss = null;
         try {
             ss = this.getServerSocketFactory().create();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
-        Assert.assertTrue(ss != null);
+        Assert.assertNotNull(ss);
     }
 
     @Test
@@ -81,9 +81,9 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
         ServerSocket ss = null;
         try {
             ss = ssFactory.create();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
-        Assert.assertTrue(ss == null);
+        Assert.assertNull(ss);
 
     }
 

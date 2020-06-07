@@ -55,7 +55,7 @@ public class NanoFileUpload extends FileUpload {
 
     public static class NanoHttpdContext implements UploadContext {
 
-        private IHTTPSession session;
+        private final IHTTPSession session;
 
         public NanoHttpdContext(IHTTPSession session) {
             this.session = session;
@@ -95,7 +95,7 @@ public class NanoFileUpload extends FileUpload {
         }
     }
 
-    public static final boolean isMultipartContent(IHTTPSession session) {
+    public static boolean isMultipartContent(IHTTPSession session) {
         return session.getMethod() == Method.POST && FileUploadBase.isMultipartContent(new NanoHttpdContext(session));
     }
 

@@ -197,7 +197,7 @@ public class WebSocketFrame {
             if (getOpCode() == OpCode.Text) {
                 String text = getTextPayload();
                 if (text.length() > 100) {
-                    sb.append(text.substring(0, 100)).append("...");
+                    sb.append(text, 0, 100).append("...");
                 } else {
                     sb.append(text);
                 }
@@ -312,13 +312,11 @@ public class WebSocketFrame {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("WS[");
-        sb.append(getOpCode());
-        sb.append(", ").append(isFin() ? "fin" : "inter");
-        sb.append(", ").append(isMasked() ? "masked" : "unmasked");
-        sb.append(", ").append(payloadToString());
-        sb.append(']');
-        return sb.toString();
+        return "WS[" + getOpCode() +
+                ", " + (isFin() ? "fin" : "inter") +
+                ", " + (isMasked() ? "masked" : "unmasked") +
+                ", " + payloadToString() +
+                ']';
     }
 
     // ------------------------------------------------------------------------

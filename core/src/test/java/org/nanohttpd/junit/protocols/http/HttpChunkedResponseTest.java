@@ -46,7 +46,7 @@ public class HttpChunkedResponseTest extends HttpServerTest {
 
         int chunk = 0;
 
-        String[] chunks;
+        final String[] chunks;
 
         private ChunkedInputStream(String[] chunks) {
             this.chunks = chunks;

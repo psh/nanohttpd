@@ -34,7 +34,6 @@ package org.nanohttpd.junit.protocols.http;
  */
 
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 
 import org.junit.Test;
 import org.nanohttpd.protocols.http.NanoHTTPD;
@@ -63,7 +62,7 @@ public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatDoesntSendBackResponseBody_NullInputStream() throws Exception {
-        this.testServer.response = Response.newChunkedResponse(Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (InputStream) null);
+        this.testServer.response = Response.newChunkedResponse(Status.NO_CONTENT, NanoHTTPD.MIME_HTML, null);
 
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 

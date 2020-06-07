@@ -40,10 +40,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.io.UnsupportedEncodingException;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -64,20 +62,16 @@ public class TestHttpServer extends AbstractTestHttpServer {
     public static void setUp() throws Exception {
         stdIn = new PipedOutputStream();
         System.setIn(new PipedInputStream(stdIn));
-        serverStartThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                String[] args = {
-                    "--host",
-                    "localhost",
-                    "--port",
-                    "9090",
-                    "--dir",
-                    "src/test/resources"
-                };
-                SimpleWebServer.main(args);
-            }
+        serverStartThread = new Thread(() -> {
+            String[] args = {
+                "--host",
+                "localhost",
+                "--port",
+                "9090",
+                "--dir",
+                "src/test/resources"
+            };
+            SimpleWebServer.main(args);
         });
         serverStartThread.start();
         // give the server some tine to start.
@@ -152,22 +146,18 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void doArgumentTest() throws InterruptedException, UnsupportedEncodingException, IOException {
+    public void doArgumentTest() throws InterruptedException, IOException {
         final String testPort = "9458";
-        Thread testServer = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                String[] args = {
-                    "-h",
-                    "localhost",
-                    "-p",
-                    testPort,
-                    "-d",
-                    "src/test/resources"
-                };
-                SimpleWebServer.main(args);
-            }
+        Thread testServer = new Thread(() -> {
+            String[] args = {
+                "-h",
+                "localhost",
+                "-p",
+                testPort,
+                "-d",
+                "src/test/resources"
+            };
+            SimpleWebServer.main(args);
         });
 
         testServer.start();
@@ -189,7 +179,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testURLContainsParentDirectory() throws ClientProtocolException, IOException {
+    public void testURLContainsParentDirectory() throws IOException {
         CloseableHttpResponse response = null;
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -205,7 +195,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testIndexFileIsShownWhenURLEndsWithDirectory() throws ClientProtocolException, IOException {
+    public void testIndexFileIsShownWhenURLEndsWithDirectory() throws IOException {
         CloseableHttpResponse response = null;
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -223,7 +213,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testPluginInternalRewrite() throws ClientProtocolException, IOException {
+    public void testPluginInternalRewrite() throws IOException {
         CloseableHttpResponse response = null;
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -241,7 +231,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testRangeHeaderWithStartPositionOnly() throws ClientProtocolException, IOException {
+    public void testRangeHeaderWithStartPositionOnly() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
@@ -266,7 +256,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testRangeStartGreaterThanFileLength() throws ClientProtocolException, IOException {
+    public void testRangeStartGreaterThanFileLength() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
@@ -285,7 +275,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testRangeHeaderWithStartAndEndPosition() throws ClientProtocolException, IOException {
+    public void testRangeHeaderWithStartAndEndPosition() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
@@ -310,7 +300,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testIfNoneMatchHeader() throws ClientProtocolException, IOException {
+    public void testIfNoneMatchHeader() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
@@ -327,7 +317,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testRangeHeaderAndIfNoneMatchHeader() throws ClientProtocolException, IOException {
+    public void testRangeHeaderAndIfNoneMatchHeader() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");

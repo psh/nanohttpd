@@ -36,7 +36,6 @@ package org.nanohttpd.junit.protocols.http.integration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,7 +81,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
             StringBuilder sb = new StringBuilder(String.valueOf(session.getMethod()) + ':' + this.response);
 
             Method method = session.getMethod();
-            Map<String, String> files = new HashMap<String, String>();
+            Map<String, String> files = new HashMap<>();
             if (Method.PUT.equals(method) || Method.POST.equals(method)) {
                 try {
                     session.parseBody(files);
@@ -96,7 +95,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
             if (parms.size() > 1) {
                 parms.remove("NanoHttpd.QUERY_STRING");
                 sb.append("-params=").append(parms.size());
-                List<String> p = new ArrayList<String>(parms.keySet());
+                List<String> p = new ArrayList<>(parms.keySet());
                 Collections.sort(p);
                 for (String k : p) {
                     sb.append(';').append(k).append('=').append(parms.get(k));
@@ -133,7 +132,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         this.testServer.response = "testPostRequestWithFormEncodedParameters";
 
         HttpPost httppost = new HttpPost("http://localhost:8192/");
-        List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
+        List<NameValuePair> postParameters = new ArrayList<>();
         postParameters.add(new BasicNameValuePair("age", "120"));
         postParameters.add(new BasicNameValuePair("gender", "Male"));
         httppost.setEntity(new UrlEncodedFormEntity(postParameters));

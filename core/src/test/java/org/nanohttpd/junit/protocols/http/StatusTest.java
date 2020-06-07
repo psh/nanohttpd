@@ -49,7 +49,7 @@ public class StatusTest {
         // By default you should not need to add any new values to this map if
         // you
         // make the name of the enum name match the status code description.
-        Map<Status, String> overrideValues = new HashMap<Status, String>();
+        Map<Status, String> overrideValues = new HashMap<>();
         overrideValues.put(Status.INTERNAL_ERROR, "500 Internal Server Error");
         overrideValues.put(Status.SWITCH_PROTOCOL, "101 Switching Protocols");
         overrideValues.put(Status.OK, "200 OK");

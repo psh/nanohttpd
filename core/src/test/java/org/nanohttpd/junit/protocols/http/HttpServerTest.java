@@ -121,7 +121,7 @@ public class HttpServerTest {
             this.uri = session.getUri();
             this.method = session.getMethod();
             this.header = session.getHeaders();
-            this.files = new HashMap<String, String>();
+            this.files = new HashMap<>();
             try {
                 session.parseBody(this.files);
             } catch (Exception e) {
@@ -187,7 +187,7 @@ public class HttpServerTest {
     }
 
     protected List<String> readLinesFromFile(BufferedReader reader) throws IOException {
-        List<String> lines = new ArrayList<String>();
+        List<String> lines = new ArrayList<>();
         String line = "";
         while (line != null) {
             line = reader.readLine();
@@ -222,7 +222,7 @@ public class HttpServerTest {
         try {
             server = new NanoHTTPD(testPort) {
 
-                final Map<String, String> files = new HashMap<String, String>();
+                final Map<String, String> files = new HashMap<>();
 
                 @Override
                 public Response serve(IHTTPSession session) {
@@ -278,7 +278,7 @@ public class HttpServerTest {
         final int testPort = 4589;
         NanoHTTPD server = new NanoHTTPD(testPort) {
 
-            final Map<String, String> files = new HashMap<String, String>();
+            final Map<String, String> files = new HashMap<>();
 
             @Override
             public Response serve(IHTTPSession session) {
@@ -295,7 +295,7 @@ public class HttpServerTest {
                     responseMsg = e.getMessage();
                 }
 
-                return Response.newFixedLengthResponse(responseMsg.toString());
+                return Response.newFixedLengthResponse(responseMsg);
             }
         };
         server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);

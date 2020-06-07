@@ -79,9 +79,8 @@ public class HttpPostRequestTest extends HttpServerTest {
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
         int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
-        String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 5) + "\r\n\r\n" + content;
 
-        return input;
+        return header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 5) + "\r\n\r\n" + content;
     }
 
     @Test
@@ -104,15 +103,14 @@ public class HttpPostRequestTest extends HttpServerTest {
     @Test
     public void testPostWithMultipartFormUploadFilenameHasSpaces() throws Exception {
         String fileNameWithSpace = "Grand Canyon.txt";
-        String fileContent = HttpPostRequestTest.VALUE;
-        String input = preparePostWithMultipartForm(fileNameWithSpace, fileContent);
+        String input = preparePostWithMultipartForm(fileNameWithSpace, HttpPostRequestTest.VALUE);
 
         invokeServer(input);
 
-        String fileNameAfter = new ArrayList<String>(this.testServer.parms.values()).get(0);
+        String fileNameAfter = new ArrayList<>(this.testServer.parms.values()).get(0);
         assertEquals(fileNameWithSpace, fileNameAfter);
 
-        fileNameAfter = new ArrayList<String>(this.testServer.parameters.values().iterator().next()).get(0);
+        fileNameAfter = new ArrayList<>(this.testServer.parameters.values().iterator().next()).get(0);
         assertEquals(fileNameWithSpace, fileNameAfter);
     }
 

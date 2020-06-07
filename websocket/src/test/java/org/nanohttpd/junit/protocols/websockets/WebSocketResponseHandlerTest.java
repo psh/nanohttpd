@@ -60,7 +60,6 @@ import org.nanohttpd.protocols.websockets.NanoWSD;
 import org.nanohttpd.protocols.websockets.OpCode;
 import org.nanohttpd.protocols.websockets.WebSocket;
 import org.nanohttpd.protocols.websockets.WebSocketFrame;
-import org.nanohttpd.util.IHandler;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketResponseHandlerTest {
@@ -84,16 +83,10 @@ public class WebSocketResponseHandlerTest {
 
         // This is to work around Mockito being a little bitch.
         public void initialize() {
-            interceptors = new ArrayList<IHandler<IHTTPSession, Response>>();
+            interceptors = new ArrayList<>();
             addHTTPInterceptor(new Interceptor());
 
-            setHTTPHandler(new IHandler<IHTTPSession, Response>() {
-
-                @Override
-                public Response handle(IHTTPSession input) {
-                    return serve(input);
-                }
-            });
+            setHTTPHandler(this::serve);
         }
 
         @Override
@@ -134,7 +127,7 @@ public class WebSocketResponseHandlerTest {
         // constructors!!
         this.nanoWebSocketServer.initialize();
 
-        this.headers = new HashMap<String, String>();
+        this.headers = new HashMap<>();
         this.headers.put("upgrade", "websocket");
         this.headers.put("connection", "Upgrade");
         this.headers.put("sec-websocket-key", "x3JJHMbDL1EzLkh9GBhXDw==");
@@ -205,7 +198,7 @@ public class WebSocketResponseHandlerTest {
             try {
                 webSocketFrame.setMaskingKey(new byte[maskingKeyLength]);
                 Assert.fail("IllegalArgumentException expected but not thrown");
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException ignored) {
 
             }
         }

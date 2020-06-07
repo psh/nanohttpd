@@ -312,8 +312,8 @@ public class HTTPSession implements IHTTPSession {
         while (st.hasMoreTokens()) {
             String e = st.nextToken();
             int sep = e.indexOf('=');
-            String key = null;
-            String value = null;
+            String key;
+            String value;
 
             if (sep >= 0) {
                 key = NanoHTTPD.decodePercent(e.substring(0, sep)).trim();
@@ -342,7 +342,7 @@ public class HTTPSession implements IHTTPSession {
             this.splitbyte = 0;
             this.rlen = 0;
 
-            int read = -1;
+            int read;
             this.inputStream.mark(HTTPSession.BUFSIZE);
             try {
                 read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
@@ -599,7 +599,7 @@ public class HTTPSession implements IHTTPSession {
         try {
             long size = getBodySize();
             ByteArrayOutputStream baos = null;
-            DataOutput requestDataOutput = null;
+            DataOutput requestDataOutput;
 
             // Store the request in memory or a file, depending on size
             if (size < MEMORY_STORE_LIMIT) {
@@ -620,7 +620,7 @@ public class HTTPSession implements IHTTPSession {
                 }
             }
 
-            ByteBuffer fbuf = null;
+            ByteBuffer fbuf;
             if (baos != null) {
                 fbuf = ByteBuffer.wrap(baos.toByteArray(), 0, baos.size());
             } else {

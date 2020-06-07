@@ -49,7 +49,7 @@ import org.nanohttpd.protocols.http.NanoHTTPD;
 public class LoadKeyStoreTest {
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void loadKeyStoreFromResources() throws Exception {
