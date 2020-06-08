@@ -84,8 +84,7 @@ public class WebSocketResponseHandlerTest {
         // This is to work around Mockito being a little bitch.
         public void initialize() {
             interceptors = new ArrayList<>();
-            addHTTPInterceptor(new Interceptor());
-
+            addHTTPInterceptor(this::handleWebSocket);
             setHTTPHandler(this::serve);
         }
 

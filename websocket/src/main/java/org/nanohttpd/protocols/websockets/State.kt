@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.websockets;
+package org.nanohttpd.protocols.websockets
 
 /*
  * #%L
@@ -32,11 +32,6 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
-public enum State {
-    UNCONNECTED,
-    CONNECTING,
-    OPEN,
-    CLOSING,
-    CLOSED
+enum class State {
+    UNCONNECTED, CONNECTING, OPEN, CLOSING, CLOSED
 }

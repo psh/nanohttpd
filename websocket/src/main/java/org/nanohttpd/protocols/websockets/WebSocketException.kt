@@ -1,4 +1,7 @@
-package org.nanohttpd.protocols.websockets;
+package org.nanohttpd.protocols.websockets
+
+import org.nanohttpd.protocols.websockets.CloseCode
+import java.io.IOException
 
 /*
  * #%L
@@ -32,37 +35,15 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
+class WebSocketException @JvmOverloads constructor(
+    val code: CloseCode,
+    val reason: String,
+    cause: Exception? = null
+) : IOException("$code: $reason", cause) {
 
-public enum CloseCode {
-    NormalClosure(1000),
-    GoingAway(1001),
-    ProtocolError(1002),
-    UnsupportedData(1003),
-    NoStatusRcvd(1005),
-    AbnormalClosure(1006),
-    InvalidFramePayloadData(1007),
-    PolicyViolation(1008),
-    MessageTooBig(1009),
-    MandatoryExt(1010),
-    InternalServerError(1011),
-    TLSHandshake(1015);
+    constructor(cause: Exception) : this(CloseCode.InternalServerError, cause.toString(), cause)
 
-    public static CloseCode find(int value) {
-        for (CloseCode code : values()) {
-            if (code.getValue() == value) {
-                return code;
-            }
-        }
-        return null;
-    }
-
-    private final int code;
-
-    CloseCode(int code) {
-        this.code = code;
-    }
-
-    public int getValue() {
-        return this.code;
+    companion object {
+        private const val serialVersionUID = 1L
     }
 }

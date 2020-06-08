@@ -1,4 +1,7 @@
-package org.nanohttpd.protocols.websockets;
+package org.nanohttpd.protocols.websockets
+
+import org.nanohttpd.protocols.websockets.CloseCode.Companion.find
+import java.nio.charset.CharacterCodingException
 
 /*
  * #%L
@@ -32,46 +35,35 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
+class CloseFrame : WebSocketFrame {
+    var closeCode: CloseCode? = null
+    var closeReason: String? = null
 
-import java.nio.charset.CharacterCodingException;
+    constructor(code: CloseCode?, closeReason: String?) : super(OpCode.Close, true, generatePayload(code, closeReason))
 
-public class CloseFrame extends WebSocketFrame {
-
-    private static byte[] generatePayload(CloseCode code, String closeReason) throws CharacterCodingException {
-        if (code != null) {
-            byte[] reasonBytes = text2Binary(closeReason);
-            byte[] payload = new byte[reasonBytes.length + 2];
-            payload[0] = (byte) (code.getValue() >> 8 & 0xFF);
-            payload[1] = (byte) (code.getValue() & 0xFF);
-            System.arraycopy(reasonBytes, 0, payload, 2, reasonBytes.length);
-            return payload;
-        } else {
-            return new byte[0];
+    constructor(wrap: WebSocketFrame) : super(wrap) {
+        assert(wrap.opCode === OpCode.Close)
+        wrap.binaryPayload?.let {
+            if (it.size >= 2) {
+                closeCode = find(it[0].toLong() and 0xFF shl 8 or it[1].toLong() and 0xFF)
+                closeReason = binary2Text(it, 2, it.size - 2)
+            }
         }
     }
 
-    private CloseCode _closeCode;
-
-    private String _closeReason;
-
-    public CloseFrame(CloseCode code, String closeReason) throws CharacterCodingException {
-        super(OpCode.Close, true, generatePayload(code, closeReason));
-    }
-
-    public CloseFrame(WebSocketFrame wrap) throws CharacterCodingException {
-        super(wrap);
-        assert wrap.getOpCode() == OpCode.Close;
-        if (wrap.getBinaryPayload().length >= 2) {
-            this._closeCode = CloseCode.find((wrap.getBinaryPayload()[0] & 0xFF) << 8 | wrap.getBinaryPayload()[1] & 0xFF);
-            this._closeReason = binary2Text(getBinaryPayload(), 2, getBinaryPayload().length - 2);
+    companion object {
+        @Throws(CharacterCodingException::class)
+        private fun generatePayload(code: CloseCode?, closeReason: String?): ByteArray {
+            return if (code != null) {
+                val reasonBytes = text2Binary(closeReason ?: "")
+                val payload = ByteArray(reasonBytes.size + 2)
+                payload[0] = (code.value shr 8 and 0xFF).toByte()
+                payload[1] = (code.value and 0xFF).toByte()
+                System.arraycopy(reasonBytes, 0, payload, 2, reasonBytes.size)
+                payload
+            } else {
+                ByteArray(0)
+            }
         }
-    }
-
-    public CloseCode getCloseCode() {
-        return this._closeCode;
-    }
-
-    public String getCloseReason() {
-        return this._closeReason;
     }
 }

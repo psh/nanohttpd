@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.websockets;
+package org.nanohttpd.protocols.websockets
 
 /*
  * #%L
@@ -32,36 +32,22 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
+enum class CloseCode(val value: Long) {
+    NormalClosure(1000),
+    GoingAway(1001),
+    ProtocolError(1002),
+    UnsupportedData(1003),
+    NoStatusRcvd(1005),
+    AbnormalClosure(1006),
+    InvalidFramePayloadData(1007),
+    PolicyViolation(1008),
+    MessageTooBig(1009),
+    MandatoryExt(1010),
+    InternalServerError(1011),
+    TLSHandshake(1015);
 
-import java.io.IOException;
-
-public class WebSocketException extends IOException {
-
-    private static final long serialVersionUID = 1L;
-
-    private final CloseCode code;
-
-    private final String reason;
-
-    public WebSocketException(CloseCode code, String reason) {
-        this(code, reason, null);
-    }
-
-    public WebSocketException(CloseCode code, String reason, Exception cause) {
-        super(code + ": " + reason, cause);
-        this.code = code;
-        this.reason = reason;
-    }
-
-    public WebSocketException(Exception cause) {
-        this(CloseCode.InternalServerError, cause.toString(), cause);
-    }
-
-    public CloseCode getCode() {
-        return this.code;
-    }
-
-    public String getReason() {
-        return this.reason;
+    companion object {
+        @JvmStatic
+        fun find(value: Long) = values().firstOrNull { it.value == value }
     }
 }
