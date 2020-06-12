@@ -1,0 +1,3 @@
+include ':localdomain'
+include ':app'
+rootProject.name = "Nano Sample Application"
