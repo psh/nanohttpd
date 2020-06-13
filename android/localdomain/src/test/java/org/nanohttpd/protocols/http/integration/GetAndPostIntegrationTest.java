@@ -91,7 +91,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
             }
 
             String uri = session.getUri();
-            Map<String, String> parms = session.getParms();
+            Map<String, List<String>> parms = session.getParameters();
             if (parms.size() > 1) {
                 parms.remove("NanoHttpd.QUERY_STRING");
                 sb.append("-params=").append(parms.size());
@@ -124,7 +124,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = this.httpclient.execute(httpget, responseHandler);
 
-        assertEquals("GET:testGetRequestWithParameters-params=2;age=120;gender=Male", responseBody);
+        assertEquals("GET:testGetRequestWithParameters-params=2;age=[120];gender=[Male]", responseBody);
     }
 
     @Test
@@ -140,7 +140,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = this.httpclient.execute(httppost, responseHandler);
 
-        assertEquals("POST:testPostRequestWithFormEncodedParameters-params=2;age=120;gender=Male", responseBody);
+        assertEquals("POST:testPostRequestWithFormEncodedParameters-params=2;age=[120];gender=[Male]", responseBody);
     }
 
     @Test
@@ -156,7 +156,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = this.httpclient.execute(httppost, responseHandler);
 
-        assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;age=120;gender=Male", responseBody);
+        assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;age=[120];gender=[Male]", responseBody);
     }
 
     @Test
@@ -201,7 +201,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         HttpEntity entity = response.getEntity();
         String responseBody = EntityUtils.toString(entity, "UTF-8");
 
-        assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;gender=图片名称;specialString=拖拉图片到浏览器，可以实现预览功能", responseBody);
+        assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;gender=[图片名称];specialString=[拖拉图片到浏览器，可以实现预览功能]", responseBody);
     }
 
     @Test

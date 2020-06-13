@@ -1,25 +1,30 @@
-package org.nanohttpd.protocols.http.threading;
+package org.nanohttpd.util
+
+import org.nanohttpd.protocols.http.NanoHTTPD
+import java.io.IOException
+import java.util.logging.Level
+import java.util.logging.Logger
 
 /*
  * #%L
- * NanoHttpd-Core
+ * NanoHttpd-Webserver
  * %%
- * Copyright (C) 2012 - 2016 nanohttpd
+ * Copyright (C) 2012 - 2015 nanohttpd
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,16 +38,37 @@ package org.nanohttpd.protocols.http.threading;
  * #L%
  */
 
-import org.nanohttpd.protocols.http.ClientHandler;
+object ServerRunner {
+    /**
+     * logger to log to.
+     */
+    private val LOG = Logger.getLogger(ServerRunner::class.java.name)
 
-/**
- * Pluggable strategy for asynchronously executing requests.
- */
-public interface IAsyncRunner {
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun executeInstance(server: NanoHTTPD) {
+        try {
+            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
+        } catch (ioe: IOException) {
+            System.err.println("Couldn't start server:\n$ioe")
+            System.exit(-1)
+        }
 
-    void closeAll();
+        println("Server started, Hit Enter to stop.\n")
 
-    void closed(ClientHandler clientHandler);
+        try {
+            System.`in`.read()
+        } catch (ignored: Throwable) {
+        }
 
-    void exec(ClientHandler code);
+        server.stop()
+        println("Server stopped.\n")
+    }
+
+    fun <T : NanoHTTPD> run(serverClass: Class<T>) {
+        try {
+            executeInstance(serverClass.newInstance())
+        } catch (e: Exception) {
+            LOG.log(Level.SEVERE, "Could not create server", e)
+        }
+    }
 }

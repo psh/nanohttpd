@@ -1,6 +1,16 @@
 package org.nanohttpd.protocols.http;
 
+import org.junit.Test;
+import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
+import org.nanohttpd.util.IFactory;
+
 import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /*
  * #%L
@@ -10,18 +20,18 @@ import java.io.File;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -34,18 +44,6 @@ import java.io.File;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
-import java.io.IOException;
-import java.net.ServerSocket;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
-import org.nanohttpd.util.IFactoryThrowing;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class ServerSocketFactoryTest extends NanoHTTPD {
 
@@ -66,12 +64,7 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
     @Test
     public void testCreateServerSocket() {
         System.out.println("CreateServerSocket test");
-        ServerSocket ss = null;
-        try {
-            ss = this.getServerSocketFactory().create();
-        } catch (IOException ignored) {
-        }
-        assertNotNull(ss);
+        assertNotNull(this.getServerSocketFactory().create());
     }
 
     @Test
@@ -80,7 +73,7 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
             ""
         };
         System.setProperty("javax.net.ssl.trustStore", new File("src/test/resources/keystore.jks").getAbsolutePath());
-        IFactoryThrowing<ServerSocket, IOException> ssFactory = new SecureServerSocketFactory(null, protocols);
+        IFactory<ServerSocket> ssFactory = new SecureServerSocketFactory(null, protocols);
         ServerSocket ss = null;
         try {
             ss = ssFactory.create();
@@ -90,8 +83,7 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
 
     }
 
-    private class TestFactory implements IFactoryThrowing<ServerSocket, IOException> {
-
+    private class TestFactory implements IFactory<ServerSocket> {
         @Override
         public ServerSocket create() {
             try {

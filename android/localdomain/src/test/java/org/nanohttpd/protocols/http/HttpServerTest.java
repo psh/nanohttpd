@@ -85,8 +85,6 @@ public class HttpServerTest {
 
         public Map<String, String> header;
 
-        public Map<String, String> parms;
-
         public Map<String, List<String>> parameters;
 
         public Map<String, String> files;
@@ -124,7 +122,6 @@ public class HttpServerTest {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            this.parms = session.getParms();
             this.parameters = session.getParameters();
             this.queryParameterString = session.getQueryParameterString();
             this.decodedParamtersFromParameter = decodeParameters(this.queryParameterString);

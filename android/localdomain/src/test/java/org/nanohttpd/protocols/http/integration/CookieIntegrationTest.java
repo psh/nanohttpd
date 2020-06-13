@@ -146,7 +146,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         this.httpclient.execute(httpget, responseHandler);
 
         assertEquals(1, this.testServer.cookiesReceived.size());
-        assertTrue(this.testServer.cookiesReceived.get(0).getHTTPHeader().contains("name=value"));
+        assertTrue(this.testServer.cookiesReceived.get(0).getHttpHeader().contains("name=value"));
     }
 
     @Test

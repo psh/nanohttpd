@@ -68,7 +68,6 @@ import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 import org.nanohttpd.protocols.http.threading.DefaultAsyncRunner;
 import org.nanohttpd.protocols.http.threading.IAsyncRunner;
 import org.nanohttpd.util.IFactory;
-import org.nanohttpd.util.IFactoryThrowing;
 import org.nanohttpd.util.IHandler;
 
 /**
@@ -323,7 +322,7 @@ public abstract class NanoHTTPD {
         return myServerSocket;
     }
 
-    private IFactoryThrowing<ServerSocket, IOException> serverSocketFactory = new DefaultServerSocketFactory();
+    private IFactory<ServerSocket> serverSocketFactory = new DefaultServerSocketFactory();
 
     private Thread myThread;
 
@@ -485,11 +484,11 @@ public abstract class NanoHTTPD {
         return wasStarted() && !this.myServerSocket.isClosed() && this.myThread.isAlive();
     }
 
-    public IFactoryThrowing<ServerSocket, IOException> getServerSocketFactory() {
+    public IFactory<ServerSocket> getServerSocketFactory() {
         return serverSocketFactory;
     }
 
-    public void setServerSocketFactory(IFactoryThrowing<ServerSocket, IOException> serverSocketFactory) {
+    public void setServerSocketFactory(IFactory<ServerSocket> serverSocketFactory) {
         this.serverSocketFactory = serverSocketFactory;
     }
 

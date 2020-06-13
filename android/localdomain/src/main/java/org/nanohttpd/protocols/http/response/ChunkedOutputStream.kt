@@ -1,4 +1,8 @@
-package org.nanohttpd.protocols.http.sockets;
+package org.nanohttpd.protocols.http.response
+
+import java.io.FilterOutputStream
+import java.io.IOException
+import java.io.OutputStream
 
 /*
  * #%L
@@ -8,18 +12,18 @@ package org.nanohttpd.protocols.http.sockets;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,41 +37,30 @@ package org.nanohttpd.protocols.http.sockets;
  * #L%
  */
 
-import java.io.IOException;
-import java.net.ServerSocket;
-
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
-
-import org.nanohttpd.util.IFactoryThrowing;
-
 /**
- * Creates a new SSLServerSocket
+ * Output stream that will automatically send every write to the wrapped
+ * OutputStream according to chunked transfer:
+ * http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1
  */
-public class SecureServerSocketFactory implements IFactoryThrowing<ServerSocket, IOException> {
+class ChunkedOutputStream(out: OutputStream?) : FilterOutputStream(out) {
 
-    private final SSLServerSocketFactory sslServerSocketFactory;
+    @Throws(IOException::class)
+    override fun write(b: Int) =
+        write(byteArrayOf(b.toByte()), 0, 1)
 
-    private final String[] sslProtocols;
+    @Throws(IOException::class)
+    override fun write(b: ByteArray) =
+        write(b, 0, b.size)
 
-    public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
-        this.sslServerSocketFactory = sslServerSocketFactory;
-        this.sslProtocols = sslProtocols;
+    @Throws(IOException::class)
+    override fun write(b: ByteArray, off: Int, len: Int) {
+        if (len == 0) return
+        out.write(String.format("%x\r\n", len).toByteArray())
+        out.write(b, off, len)
+        out.write("\r\n".toByteArray())
     }
 
-    @Override
-    public ServerSocket create() throws IOException {
-        SSLServerSocket ss = null;
-        ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
-        if (this.sslProtocols != null) {
-            ss.setEnabledProtocols(this.sslProtocols);
-        } else {
-            ss.setEnabledProtocols(ss.getSupportedProtocols());
-        }
-        ss.setUseClientMode(false);
-        ss.setWantClientAuth(false);
-        ss.setNeedClientAuth(false);
-        return ss;
-    }
-
+    @Throws(IOException::class)
+    fun finish() =
+        out.write("0\r\n\r\n".toByteArray())
 }

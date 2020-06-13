@@ -1,25 +1,31 @@
-package org.nanohttpd.util;
+package org.nanohttpd.protocols.http
+
+import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException
+import org.nanohttpd.protocols.http.content.CookieHandler
+import org.nanohttpd.protocols.http.request.Method
+import java.io.IOException
+import java.io.InputStream
 
 /*
  * #%L
- * NanoHttpd-Webserver
+ * NanoHttpd-Core
  * %%
- * Copyright (C) 2012 - 2015 nanohttpd
+ * Copyright (C) 2012 - 2016 nanohttpd
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,43 +39,52 @@ package org.nanohttpd.util;
  * #L%
  */
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+/**
+ * Handles one session, i.e. parses the HTTP request and returns the response.
+ */
+interface IHTTPSession {
+    val cookies: CookieHandler?
 
-import org.nanohttpd.protocols.http.NanoHTTPD;
+    var headers: MutableMap<String?, String?>?
 
-public class ServerRunner {
+    var inputStream: InputStream?
+
+    val method: Method?
 
     /**
-     * logger to log to.
+     * This method will only return the first value for a given parameter. You
+     * will want to use getParameters if you expect multiple values for a given
+     * key.
+     *
      */
-    private static final Logger LOG = Logger.getLogger(ServerRunner.class.getName());
+//    @get:Deprecated("use {@link #getParameters()} instead.")
+//    var parms: MutableMap<String, String>
 
-    public static void executeInstance(NanoHTTPD server) {
-        try {
-            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-        } catch (IOException ioe) {
-            System.err.println("Couldn't start server:\n" + ioe);
-            System.exit(-1);
-        }
+    fun getParameters() : MutableMap<String, MutableList<String>>
 
-        System.out.println("Server started, Hit Enter to stop.\n");
+    val queryParameterString: String?
 
-        try {
-            System.in.read();
-        } catch (Throwable ignored) {
-        }
+    /**
+     * Get the remote ip address of the requester.
+     *
+     * @return the IP address.
+     */
+    val remoteIpAddress: String?
 
-        server.stop();
-        System.out.println("Server stopped.\n");
-    }
+    /**
+     * @return the path part of the URL.
+     */
+    val uri: String?
 
-    public static <T extends NanoHTTPD> void run(Class<T> serverClass) {
-        try {
-            executeInstance(serverClass.newInstance());
-        } catch (Exception e) {
-            ServerRunner.LOG.log(Level.SEVERE, "Could not create server", e);
-        }
-    }
+    /**
+     * Adds the files in the request body to the files map.
+     *
+     * @param files
+     * map to modify
+     */
+    @Throws(IOException::class, ResponseException::class)
+    fun parseBody(files: MutableMap<String, String>)
+
+    @Throws(IOException::class)
+    fun execute()
 }

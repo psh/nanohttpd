@@ -1,4 +1,8 @@
-package org.nanohttpd.protocols.http;
+package org.nanohttpd.protocols.http.tempfiles
+
+import org.nanohttpd.protocols.http.NanoHTTPD
+import java.io.File
+import java.util.logging.Level
 
 /*
  * #%L
@@ -8,18 +12,18 @@ package org.nanohttpd.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,58 +37,41 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.logging.Level;
-
 /**
- * The runnable that will be used for the main listening thread.
+ * Default strategy for creating and cleaning up temporary files.
+ *
+ *
+ *
+ *
+ * This class stores its files in the standard location (that is, wherever
+ * `java.io.tmpdir` points to). Files are added to an internal list,
+ * and deleted when no longer needed (that is, when `clear()` is
+ * invoked at the end of processing a request).
+ *
  */
-public class ServerRunnable implements Runnable {
+open class DefaultTempFileManager : ITempFileManager {
+    private val tempFiles: MutableList<ITempFile> = mutableListOf()
+    private val tmpdir: File = File(System.getProperty("java.io.tmpdir")!!)
 
-    private final NanoHTTPD httpd;
-
-    private final int timeout;
-
-    private IOException bindException;
-
-    private boolean hasBinded = false;
-
-    public ServerRunnable(NanoHTTPD httpd, int timeout) {
-        this.httpd = httpd;
-        this.timeout = timeout;
-    }
-
-    @Override
-    public void run() {
-        try {
-            httpd.getMyServerSocket().bind(httpd.hostname != null ? new InetSocketAddress(httpd.hostname, httpd.myPort) : new InetSocketAddress(httpd.myPort));
-            hasBinded = true;
-        } catch (IOException e) {
-            this.bindException = e;
-            return;
+    init {
+        if (!tmpdir.exists()) {
+            tmpdir.mkdirs()
         }
-        do {
+    }
+
+    override fun clear() {
+        tempFiles.forEach {
             try {
-                final Socket finalAccept = httpd.getMyServerSocket().accept();
-                if (this.timeout > 0) {
-                    finalAccept.setSoTimeout(this.timeout);
-                }
-                final InputStream inputStream = finalAccept.getInputStream();
-                httpd.asyncRunner.exec(httpd.createClientHandler(finalAccept, inputStream));
-            } catch (IOException e) {
-                NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
+                it.delete()
+            } catch (exception: Exception) {
+                NanoHTTPD.LOG.log(Level.WARNING, "could not delete file ", exception)
             }
-        } while (!httpd.getMyServerSocket().isClosed());
+        }
+        tempFiles.clear()
     }
 
-    public IOException getBindException() {
-        return bindException;
-    }
-
-    public boolean hasBinded() {
-        return hasBinded;
+    @Throws(Exception::class)
+    override fun createTempFile(filename_hint: String?): ITempFile? = DefaultTempFile(tmpdir).also {
+        tempFiles.add(it)
     }
 }

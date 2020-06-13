@@ -1,4 +1,9 @@
-package org.nanohttpd.protocols.http.response;
+package org.nanohttpd.protocols.http.tempfiles
+
+import org.nanohttpd.protocols.http.NanoHTTPD
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 
 /*
  * #%L
@@ -8,18 +13,18 @@ package org.nanohttpd.protocols.http.response;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -32,10 +37,29 @@ package org.nanohttpd.protocols.http.response;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
+/**
+ * Default strategy for creating and cleaning up temporary files.
+ *
+ * By default, files are created by `File.createTempFile()` in the
+ * directory specified.
+ */
+class DefaultTempFile(tempdir: File?) : ITempFile {
+    private val file: File = File.createTempFile("NanoHTTPD-", "", tempdir)
+    override val name: String = file.absolutePath
+    private val fstream: OutputStream
 
-public interface IStatus {
+    init {
+        fstream = FileOutputStream(file)
+    }
 
-    String getDescription();
+    @Throws(Exception::class)
+    override fun delete() {
+        NanoHTTPD.safeClose(fstream)
+        if (!file.delete()) {
+            throw Exception("could not delete temporary file: " + file.absolutePath)
+        }
+    }
 
-    int getRequestStatus();
+    @Throws(Exception::class)
+    override fun open() = fstream
 }

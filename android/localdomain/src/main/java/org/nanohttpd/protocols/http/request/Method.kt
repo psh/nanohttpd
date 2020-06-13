@@ -1,5 +1,4 @@
-package org.nanohttpd.protocols.http.threading;
-
+package org.nanohttpd.protocols.http.request
 /*
  * #%L
  * NanoHttpd-Core
@@ -8,18 +7,18 @@ package org.nanohttpd.protocols.http.threading;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,58 +32,15 @@ package org.nanohttpd.protocols.http.threading;
  * #L%
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.nanohttpd.protocols.http.ClientHandler;
-
 /**
- * Default threading strategy for NanoHTTPD.
- * <p/>
- * <p>
- * By default, the server spawns a new Thread for every incoming request. These
- * are set to <i>daemon</i> status, and named according to the request number.
- * The name is useful when profiling the application.
- * </p>
+ * HTTP Request methods, with the ability to decode a `String` back
+ * to its enum value.
  */
-public class DefaultAsyncRunner implements IAsyncRunner {
+enum class Method {
+    GET, PUT, POST, DELETE, HEAD, OPTIONS, TRACE, CONNECT, PATCH, PROPFIND, PROPPATCH, MKCOL, MOVE, COPY, LOCK, UNLOCK, NOTIFY, SUBSCRIBE;
 
-    protected long requestCount;
-
-    private final List<ClientHandler> running = Collections.synchronizedList(new ArrayList<>());
-
-    /**
-     * @return a list with currently running clients.
-     */
-    public List<ClientHandler> getRunning() {
-        return running;
-    }
-
-    @Override
-    public void closeAll() {
-        // copy of the list for concurrency
-        for (ClientHandler clientHandler : new ArrayList<>(this.running)) {
-            clientHandler.close();
-        }
-    }
-
-    @Override
-    public void closed(ClientHandler clientHandler) {
-        this.running.remove(clientHandler);
-    }
-
-    @Override
-    public void exec(ClientHandler clientHandler) {
-        ++this.requestCount;
-        this.running.add(clientHandler);
-        createThread(clientHandler).start();
-    }
-
-    protected Thread createThread(ClientHandler clientHandler) {
-        Thread t = new Thread(clientHandler);
-        t.setDaemon(true);
-        t.setName("NanoHttpd Request Processor (#" + this.requestCount + ")");
-        return t;
+    companion object {
+        @JvmStatic
+        fun lookup(method: String?): Method? = values().firstOrNull { it.name == method }
     }
 }

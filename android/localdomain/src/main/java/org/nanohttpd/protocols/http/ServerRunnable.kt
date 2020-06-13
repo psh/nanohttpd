@@ -1,4 +1,8 @@
-package org.nanohttpd.protocols.http.tempfiles;
+package org.nanohttpd.protocols.http
+
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.util.logging.Level
 
 /*
  * #%L
@@ -8,18 +12,18 @@ package org.nanohttpd.protocols.http.tempfiles;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,53 +37,38 @@ package org.nanohttpd.protocols.http.tempfiles;
  * #L%
  */
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-
-import org.nanohttpd.protocols.http.NanoHTTPD;
-
 /**
- * Default strategy for creating and cleaning up temporary files.
- * <p/>
- * <p>
- * This class stores its files in the standard location (that is, wherever
- * <code>java.io.tmpdir</code> points to). Files are added to an internal list,
- * and deleted when no longer needed (that is, when <code>clear()</code> is
- * invoked at the end of processing a request).
- * </p>
+ * The runnable that will be used for the main listening thread.
  */
-public class DefaultTempFileManager implements ITempFileManager {
+class ServerRunnable(private val httpd: NanoHTTPD, private val timeout: Int) : Runnable {
+    private var hasBinded = false
+    var bindException: IOException? = null
 
-    private final File tmpdir;
-
-    private final List<ITempFile> tempFiles;
-
-    public DefaultTempFileManager() {
-        this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
-        if (!tmpdir.exists()) {
-            tmpdir.mkdirs();
-        }
-        this.tempFiles = new ArrayList<>();
+    fun hasBinded(): Boolean {
+        return hasBinded
     }
 
-    @Override
-    public void clear() {
-        for (ITempFile file : this.tempFiles) {
+    override fun run() {
+        try {
+            httpd.myServerSocket.bind(
+                if (httpd.hostname != null) InetSocketAddress(httpd.hostname, httpd.myPort)
+                else InetSocketAddress(httpd.myPort)
+            )
+            hasBinded = true
+        } catch (e: IOException) {
+            bindException = e
+            return
+        }
+
+        do {
             try {
-                file.delete();
-            } catch (Exception exception) {
-                NanoHTTPD.LOG.log(Level.WARNING, "could not delete file ", exception);
+                with(httpd.myServerSocket.accept().apply { if (timeout > 0) soTimeout = timeout }) {
+                    httpd.asyncRunner.exec(httpd.createClientHandler(this, getInputStream()))
+                }
+            } catch (e: IOException) {
+                NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e)
             }
-        }
-        this.tempFiles.clear();
+        } while (!httpd.myServerSocket.isClosed)
     }
 
-    @Override
-    public ITempFile createTempFile(String filename_hint) throws Exception {
-        DefaultTempFile tempFile = new DefaultTempFile(this.tmpdir);
-        this.tempFiles.add(tempFile);
-        return tempFile;
-    }
 }

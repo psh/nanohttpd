@@ -91,7 +91,6 @@ public class HttpPostRequestTest extends HttpServerTest {
 
         invokeServer(input);
 
-        assertEquals(1, this.testServer.parms.size());
         assertEquals(1, this.testServer.parameters.size());
         BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
@@ -107,7 +106,7 @@ public class HttpPostRequestTest extends HttpServerTest {
 
         invokeServer(input);
 
-        String fileNameAfter = new ArrayList<>(this.testServer.parms.values()).get(0);
+        String fileNameAfter = new ArrayList<>(this.testServer.parameters.values()).get(0).get(0);
         assertEquals(fileNameWithSpace, fileNameAfter);
 
         fileNameAfter = new ArrayList<>(this.testServer.parameters.values().iterator().next()).get(0);
@@ -128,10 +127,6 @@ public class HttpPostRequestTest extends HttpServerTest {
         String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
         invokeServer(input);
 
-        assertEquals(2, this.testServer.parms.size());
-        assertEquals(HttpPostRequestTest.VALUE, this.testServer.parms.get(HttpPostRequestTest.FIELD));
-        assertEquals(HttpPostRequestTest.VALUE2, this.testServer.parms.get(HttpPostRequestTest.FIELD2));
-
         assertEquals(2, this.testServer.parameters.size());
         assertEquals(HttpPostRequestTest.VALUE, this.testServer.parameters.get(HttpPostRequestTest.FIELD).get(0));
         assertEquals(HttpPostRequestTest.VALUE2, this.testServer.parameters.get(HttpPostRequestTest.FIELD2).get(0));
@@ -151,10 +146,6 @@ public class HttpPostRequestTest extends HttpServerTest {
         String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
         invokeServer(input);
 
-        assertEquals(2, this.testServer.parms.size());
-        assertEquals(HttpPostRequestTest.VALUE, this.testServer.parms.get(HttpPostRequestTest.FIELD));
-        assertEquals(HttpPostRequestTest.VALUE2, this.testServer.parms.get(HttpPostRequestTest.FIELD2));
-
         assertEquals(2, this.testServer.parameters.size());
         assertEquals(HttpPostRequestTest.VALUE, this.testServer.parameters.get(HttpPostRequestTest.FIELD).get(0));
         assertEquals(HttpPostRequestTest.VALUE2, this.testServer.parameters.get(HttpPostRequestTest.FIELD2).get(0));
@@ -173,9 +164,6 @@ public class HttpPostRequestTest extends HttpServerTest {
         String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
         invokeServer(input);
 
-        assertEquals(1, this.testServer.parms.size());
-        assertEquals(HttpPostRequestTest.VALUE, this.testServer.parms.get(HttpPostRequestTest.FIELD));
-
         assertEquals(1, this.testServer.parameters.size());
         assertEquals(HttpPostRequestTest.VALUE, this.testServer.parameters.get(HttpPostRequestTest.FIELD).get(0));
     }
@@ -189,7 +177,6 @@ public class HttpPostRequestTest extends HttpServerTest {
         int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
         String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
         invokeServer(input);
-        assertEquals(0, this.testServer.parms.size());
         assertEquals(0, this.testServer.parameters.size());
         assertEquals(1, this.testServer.files.size());
         assertEquals(HttpPostRequestTest.VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS, this.testServer.files.get(HttpPostRequestTest.POST_RAW_CONTENT_FILE_ENTRY));
@@ -212,9 +199,7 @@ public class HttpPostRequestTest extends HttpServerTest {
         String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
         invokeServer(input);
 
-        assertEquals("Parms count did not match.", 2, this.testServer.parms.size());
         assertEquals("Parameters count did not match.", 2, this.testServer.parameters.size());
-        assertEquals("Param value did not match", HttpPostRequestTest.VALUE2, this.testServer.parms.get(HttpPostRequestTest.FIELD2));
         assertEquals("Parameter value did not match", HttpPostRequestTest.VALUE2, this.testServer.parameters.get(HttpPostRequestTest.FIELD2).get(0));
         BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
@@ -248,7 +233,6 @@ public class HttpPostRequestTest extends HttpServerTest {
         String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
         invokeServer(input);
 
-        assertEquals("Parm count did not match.", 2, this.testServer.parms.size());
         assertEquals("Parameter count did not match.", 2, this.testServer.parameters.size());
         BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
@@ -278,7 +262,6 @@ public class HttpPostRequestTest extends HttpServerTest {
 
         invokeServer(input);
 
-        assertEquals("Parm count did not match.", 1, this.testServer.parms.size());
         assertEquals("Parameter count did not match.", 1, this.testServer.parameters.size());
         BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);

@@ -1,4 +1,8 @@
-package org.nanohttpd.protocols.http;
+package org.nanohttpd.protocols.http.threading
+
+import org.nanohttpd.protocols.http.ClientHandler
+import java.util.ArrayList
+import java.util.Collections
 
 /*
  * #%L
@@ -8,18 +12,18 @@ package org.nanohttpd.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,61 +37,41 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
-import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
-import org.nanohttpd.protocols.http.content.CookieHandler;
-import org.nanohttpd.protocols.http.request.Method;
-
 /**
- * Handles one session, i.e. parses the HTTP request and returns the response.
+ * Default threading strategy for NanoHTTPD.
+ *
+ * By default, the server spawns a new Thread for every incoming request. These
+ * are set to *daemon* status, and named according to the request number.
+ * The name is useful when profiling the application.
  */
-public interface IHTTPSession {
-
-    void execute() throws IOException;
-
-    CookieHandler getCookies();
-
-    Map<String, String> getHeaders();
-
-    InputStream getInputStream();
-
-    Method getMethod();
+open class DefaultAsyncRunner : IAsyncRunner {
+    private var requestCount: Long = 0
+    private val running = Collections.synchronizedList(ArrayList<ClientHandler>())
 
     /**
-     * This method will only return the first value for a given parameter. You
-     * will want to use getParameters if you expect multiple values for a given
-     * key.
-     * 
-     * @deprecated use {@link #getParameters()} instead.
+     * @return a list with currently running clients.
      */
-    @Deprecated
-    Map<String, String> getParms();
+    fun getRunning(): List<ClientHandler?> = running
 
-    Map<String, List<String>> getParameters();
+    override fun closeAll() {
+        // copy of the list for concurrency
+        ArrayList(running).forEach { it.close() }
+    }
 
-    String getQueryParameterString();
+    override fun closed(clientHandler: ClientHandler?) {
+        running.remove(clientHandler)
+    }
 
-    /**
-     * @return the path part of the URL.
-     */
-    String getUri();
+    override fun exec(code: ClientHandler?) {
+        ++requestCount
+        running.add(code)
+        createThread(code).start()
+    }
 
-    /**
-     * Adds the files in the request body to the files map.
-     * 
-     * @param files
-     *            map to modify
-     */
-    void parseBody(Map<String, String> files) throws IOException, ResponseException;
-
-    /**
-     * Get the remote ip address of the requester.
-     * 
-     * @return the IP address.
-     */
-    String getRemoteIpAddress();
+    private fun createThread(clientHandler: ClientHandler?): Thread {
+        return Thread(clientHandler).apply {
+            isDaemon = true
+            name = "NanoHttpd Request Processor (#$requestCount)"
+        }
+    }
 }
