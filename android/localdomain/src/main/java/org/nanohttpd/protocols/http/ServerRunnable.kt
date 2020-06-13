@@ -50,7 +50,7 @@ class ServerRunnable(private val httpd: NanoHTTPD, private val timeout: Int) : R
 
     override fun run() {
         try {
-            httpd.myServerSocket.bind(
+            httpd.myServerSocket?.bind(
                 if (httpd.hostname != null) InetSocketAddress(httpd.hostname, httpd.myPort)
                 else InetSocketAddress(httpd.myPort)
             )
@@ -62,13 +62,13 @@ class ServerRunnable(private val httpd: NanoHTTPD, private val timeout: Int) : R
 
         do {
             try {
-                with(httpd.myServerSocket.accept().apply { if (timeout > 0) soTimeout = timeout }) {
-                    httpd.asyncRunner.exec(httpd.createClientHandler(this, getInputStream()))
+                with(httpd.myServerSocket?.accept()?.apply { if (timeout > 0) soTimeout = timeout }) {
+                    httpd.asyncRunner?.exec(httpd.createClientHandler(this, this?.getInputStream()))
                 }
             } catch (e: IOException) {
                 NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e)
             }
-        } while (!httpd.myServerSocket.isClosed)
+        } while (httpd.myServerSocket?.isClosed != true)
     }
 
 }

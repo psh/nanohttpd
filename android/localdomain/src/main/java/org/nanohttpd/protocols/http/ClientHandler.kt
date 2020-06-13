@@ -58,7 +58,7 @@ class ClientHandler(
         var outputStream: OutputStream? = null
         try {
             outputStream = acceptSocket.getOutputStream()
-            val tempFileManager = httpd.tempFileManagerFactory.create()
+            val tempFileManager = httpd.tempFileManagerFactory?.create()
             val session = HTTPSession(
                 httpd,
                 tempFileManager,
@@ -84,7 +84,7 @@ class ClientHandler(
             NanoHTTPD.safeClose(outputStream)
             NanoHTTPD.safeClose(inputStream)
             NanoHTTPD.safeClose(acceptSocket)
-            httpd.asyncRunner.closed(this)
+            httpd.asyncRunner?.closed(this)
         }
     }
 

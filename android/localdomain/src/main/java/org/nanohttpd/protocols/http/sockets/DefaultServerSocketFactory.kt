@@ -40,7 +40,7 @@ import java.net.ServerSocket
 /**
  * Creates a normal ServerSocket for TCP connections
  */
-class DefaultServerSocketFactory : IFactory<ServerSocket?> {
+class DefaultServerSocketFactory : IFactory<ServerSocket> {
     @Throws(IOException::class)
     override fun create(): ServerSocket = ServerSocket()
 }

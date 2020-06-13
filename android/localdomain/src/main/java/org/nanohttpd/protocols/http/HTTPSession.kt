@@ -1,6 +1,5 @@
 package org.nanohttpd.protocols.http
 
-import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException
 import org.nanohttpd.protocols.http.content.ContentType
 import org.nanohttpd.protocols.http.content.CookieHandler
 import org.nanohttpd.protocols.http.request.Method
@@ -68,7 +67,7 @@ import javax.net.ssl.SSLException
 
 class HTTPSession : IHTTPSession {
     private val httpd: NanoHTTPD
-    private val tempFileManager: ITempFileManager
+    private val tempFileManager: ITempFileManager?
     private val outputStream: OutputStream
     private var splitbyte = 0
     private var rlen = 0
@@ -98,7 +97,7 @@ class HTTPSession : IHTTPSession {
 
     constructor(
         httpd: NanoHTTPD,
-        tempFileManager: ITempFileManager,
+        tempFileManager: ITempFileManager?,
         inputStream: InputStream?,
         outputStream: OutputStream,
         inetAddress: InetAddress
@@ -336,18 +335,18 @@ class HTTPSession : IHTTPSession {
         while (st.hasMoreTokens()) {
             val e = st.nextToken()
             val sep = e.indexOf('=')
-            var key: String
+            var key: String?
             var value: String?
             if (sep >= 0) {
-                key = NanoHTTPD.decodePercent(e.substring(0, sep)).trim { it <= ' ' }
+                key = NanoHTTPD.decodePercent(e.substring(0, sep))?.trim { it <= ' ' }
                 value = NanoHTTPD.decodePercent(e.substring(sep + 1))
             } else {
-                key = NanoHTTPD.decodePercent(e).trim { it <= ' ' }
+                key = NanoHTTPD.decodePercent(e)?.trim { it <= ' ' }
                 value = ""
             }
-            value?.let {
+            if (key != null && value != null) {
                 val list = p.getOrPut(key, { mutableListOf() })
-                list.add(it)
+                list.add(value)
             }
         }
     }
@@ -494,7 +493,7 @@ class HTTPSession : IHTTPSession {
             NanoHTTPD.safeClose(outputStream)
         } finally {
             NanoHTTPD.safeClose(r)
-            tempFileManager.clear()
+            tempFileManager?.clear()
         }
     }
 
@@ -572,7 +571,7 @@ class HTTPSession : IHTTPSession {
     // we won't recover, so throw an error
     private val tmpBucket: RandomAccessFile
         private get() = try {
-            val tempFile = tempFileManager.createTempFile(null)
+            val tempFile = tempFileManager?.createTempFile(null)
             RandomAccessFile(tempFile!!.name, "rw")
         } catch (e: Exception) {
             throw Error(e) // we won't recover, so throw an error
@@ -687,7 +686,7 @@ class HTTPSession : IHTTPSession {
         if (len > 0) {
             var fileOutputStream: FileOutputStream? = null
             try {
-                val tempFile = tempFileManager.createTempFile(filename_hint)
+                val tempFile = tempFileManager?.createTempFile(filename_hint)
                 val src = b.duplicate()
                 fileOutputStream = FileOutputStream(tempFile!!.name)
                 val dest = fileOutputStream.channel

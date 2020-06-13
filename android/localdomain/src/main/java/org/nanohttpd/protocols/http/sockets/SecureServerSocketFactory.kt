@@ -45,7 +45,7 @@ import javax.net.ssl.SSLServerSocketFactory
 class SecureServerSocketFactory(
     private val sslServerSocketFactory: SSLServerSocketFactory?,
     private val sslProtocols: Array<String>?
-) : IFactory<ServerSocket?> {
+) : IFactory<ServerSocket> {
     @Throws(IOException::class)
     override fun create(): ServerSocket =
         (sslServerSocketFactory?.createServerSocket() as SSLServerSocket).apply {
